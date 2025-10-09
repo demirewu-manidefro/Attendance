@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sub-Group Leader Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+</head>
+<body>
+<div class="ui container" style="margin-top:30px;">
+    <h2 class="ui header">Sub-Group Leader Dashboard</h2>
+    <a href="{{ url_for('logout') }}" class="ui red button">Logout</a>
+
+    <div class="ui three cards" style="margin-top:20px;">
+        <a href="{{ url_for('add_employee') }}" class="ui card">
+            <div class="content"><div class="header">Add Employee</div></div>
+        </a>
+        <a href="{{ url_for('attendance', sub_group_id=session['sub_group_id']) }}" class="ui card">
+            <div class="content"><div class="header">Mark Attendance</div></div>
+        </a>
+        <a href="{{ url_for('attendance_report') }}" class="ui card">
+            <div class="content"><div class="header">Export Attendance Report</div></div>
+        </a>
+    </div>
+</div>
+</body>
+</html>

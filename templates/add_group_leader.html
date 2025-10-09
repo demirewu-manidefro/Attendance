@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Group Leader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+</head>
+<body>
+<div class="ui container" style="margin-top:50px;">
+    <h2 class="ui header">Add Group Leader</h2>
+    <a href="{{ url_for('dashboard') }}" class="ui button">Back</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, msg in messages %}
+            <div class="ui {{category}} message">{{ msg }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form class="ui form" method="POST">
+        <div class="field">
+            <label>Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="field">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <div class="field">
+            <label>Assign Group</label>
+            <select name="group_id" required>
+                {% for g in groups %}
+                    <option value="{{ g.id }}">{{ g.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="ui primary button" type="submit">Add</button>
+    </form>
+</div>
+</body>
+</html>

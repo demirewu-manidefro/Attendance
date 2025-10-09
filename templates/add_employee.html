@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Employee</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+</head>
+<body>
+<div class="ui container" style="margin-top:50px;">
+    <h2 class="ui header">Add Employee</h2>
+    <a href="{{ url_for('dashboard') }}" class="ui button">Back</a>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, msg in messages %}
+            <div class="ui {{category}} message">{{ msg }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form class="ui form" method="POST">
+        <div class="field"><label>Name</label><input type="text" name="name" required></div>
+        <div class="field"><label>Father Name</label><input type="text" name="father_name" required></div>
+        <div class="field">
+            <label>Sex</label>
+            <select name="sex" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </div>
+        <div class="field"><label>Religion</label><input type="text" name="religion" required></div>
+        <div class="field"><label>Department</label><input type="text" name="department" required></div>
+        <button class="ui primary button" type="submit">Add Employee</button>
+    </form>
+</div>
+</body>
+</html>

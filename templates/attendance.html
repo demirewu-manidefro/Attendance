@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mark Attendance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+</head>
+<body>
+<div class="ui container" style="margin-top:50px;">
+    <h2 class="ui header">Mark Attendance</h2>
+    <a href="{{ url_for('dashboard') }}" class="ui button">Back</a>
+
+    <form class="ui form" method="POST">
+        <div class="field">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ datetime.utcnow().strftime('%Y-%m-%d') }}" required>
+        </div>
+        <table class="ui celled table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for emp in employees %}
+                <tr>
+                    <td>{{ emp.name }}</td>
+                    <td><input type="radio" name="status_{{ emp.id }}" value="Present" checked></td>
+                    <td><input type="radio" name="status_{{ emp.id }}" value="Absent"></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button class="ui primary button" type="submit">Save Attendance</button>
+    </form>
+</div>
+</body>
+</html>
