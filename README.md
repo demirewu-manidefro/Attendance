@@ -35,215 +35,85 @@ The pipeline integrates three heterogeneous data sources:
 
 ## 🏗️ Architecture Overview
 
++-----------------------------+
+| NYC Taxi Trip Data |
+| (Parquet) |
++-------------+---------------+
+|
+v
++-----------------------------+
+| Taxi Zone Lookup |
+| (CSV) |
++-------------+---------------+
+|
+v
++-----------------------------+
+| NYC Weather Data |
+| (JSON API) |
++-------------+---------------+
+|
+v
++---------------------------------------------------+
 
-┌──────────────┐
-│ Parquet Data │
-└──────┬───────┘
-│
-┌──────▼───────┐
-│ CSV Data │
-└──────┬───────┘
-│
-┌──────▼───────┐
-│ JSON (API) │
-└──────┬───────┘
-│
-┌──────▼────────────────────────┐
-│ Apache PySpark (Transform) │
-│ - Cleaning │
-│ - Enrichment │
-│ - Feature Engineering │
-└──────┬────────────────────────┘
-│
-┌──────▼─────────────┐
-│ Parquet (Staging) │
-└──────┬─────────────┘
-│
-┌──────▼─────────────┐
-│ DuckDB (Analytics) │
-└──────┬─────────────┘
-│
-┌──────▼─────────────┐
-│ BI Dashboard │
-│ (Power BI / etc.) │
-└────────────────────┘
+Apache PySpark
+- Data Cleaning
+- Invalid Trip Filtering
+- Null Value Handling
+- Feature Engineering
+* Trip Duration
+* Pickup Hour / Day / Weekend
+* Weather Category
+- Data Enrichment
+* Borough & Zone Mapping
+* Hourly Weather Join
++----------------------+----------------------------+
 
----
+markdown
+Copy code
+                   |
+                   v
++---------------------------------------------------+
+| Parquet Staging Layer |
+| - Cleaned and Enriched Data |
+| - Optimized for Analytical Loading |
++----------------------+----------------------------+
+|
+v
++---------------------------------------------------+
+| DuckDB Analytics Database |
+| - Analytics-ready Tables |
+| - High-performance SQL Queries |
+| - Schema Validation & Inspection |
++----------------------+----------------------------+
+|
+v
++---------------------------------------------------+
+| BI Dashboard |
+| (Power BI / Tableau / Looker) |
+| - Time-based Demand Analysis |
+| - Weather Impact on Trips |
+| - Weekday vs Weekend Trends |
++---------------------------------------------------+
 
-## ⚙️ Technologies Used
+pgsql
+Copy code
 
-| Category | Tool |
-|--------|------|
-| Distributed Processing | Apache PySpark |
-| Orchestration | Prefect |
-| Storage Format | Parquet |
-| Analytics Database | DuckDB |
-| BI Tool | Power BI / Tableau / Looker |
-| Programming Language | Python 3 |
-| OS Support | Windows-safe configuration |
+### Architecture Flow Explanation
 
----
+- **Data Ingestion Layer**  
+  Raw data is ingested from Parquet (NYC taxi trips), CSV (taxi zone lookup), and a JSON-based weather API.
 
-## 🔄 ETL Pipeline Description
+- **Processing & Transformation Layer**  
+  Apache PySpark performs distributed transformations including data cleaning, validation, feature engineering, and enrichment with geographic and weather information.
 
-### 1️⃣ Extract
-- Read NYC taxi trip data from Parquet files
-- Load taxi zone lookup data from CSV
-- Parse hourly weather data from a JSON-based API
+- **Staging Layer**  
+  Transformed datasets are written to a Parquet staging layer to ensure fault tolerance and efficient downstream loading.
 
-### 2️⃣ Transform (PySpark)
-- Filter invalid trips (distance, fare, duration)
-- Handle missing and null values safely
-- Feature engineering:
-  - Trip duration
-  - Pickup hour, weekday, weekend indicator
-  - Weather category
-- Enrich taxi trips with:
-  - Borough and zone lookup data
-  - Hourly weather conditions
-- Apply fallback logic for missing weather values
+- **Analytics Layer**  
+  DuckDB ingests staged Parquet files and provides an analytics-ready database optimized for fast SQL queries and validation.
 
-### 3️⃣ Load
-- Write transformed data to Parquet staging layer
-- Load data into DuckDB using `read_parquet()`
-- Create analytics-ready tables
+- **Visualization Layer**  
+  BI tools connect directly to DuckDB to generate dashboards and analytical insights for decision-making.
 
----
-
-## ⏱️ Pipeline Orchestration with Prefect
-
-The ETL pipeline is orchestrated using **Prefect**, providing:
-- Task-level management
-- Fault tolerance with automatic retries
-- Retry delays
-- Daily caching to prevent redundant computation
-- Explicit dependency management
-- Deployment-ready scheduling
-
-The pipeline is implemented as a **Prefect Flow**, where each major ETL step is an independent task:
-- Data transformation and enrichment using PySpark
-- Loading and validation in DuckDB
-
-To run manually:
-```bash
-python prefect_flow.py
-
-⏱️ Prefect Local Setup (Academic / Development)
-
-⚠️ This is a local orchestration setup. Scheduled runs execute only while the local machine and Prefect worker are running.
-
-1️⃣ Start Prefect Server
-prefect server start
-Prefect UI:
-http://127.0.0.1:4200
-2️⃣ Navigate to Project Directory
-cd C:\Users\HP\Documents\etl-project
-
-3️⃣ Create Work Pool (One-Time)
-prefect work-pool create local-pool --type process
-
-4️⃣ Deploy Flow with Schedule
-prefect deploy prefect_flow.py:main_flow --name daily_etl --pool local-pool --cron "0 9 * * *"
-
-
-This:
-
-Registers the deployment
-
-Assigns it to the work pool
-
-Schedules daily execution at 09:00
-
-5️⃣ Start Prefect Worker
-prefect worker start --pool local-pool
-
-📝 Execution Behavior
-
-Scheduled runs pause if the machine or worker is stopped
-
-Future runs resume when the worker restarts
-
-Missed runs are not backfilled in a local setup
-
-This design demonstrates production-like automation while remaining lightweight and suitable for academic use.
-
-📊 BI Dashboard
-
-The DuckDB analytics database is connected to a BI tool to visualize:
-
-Taxi trips by hour and weekday
-
-Average trip duration by weather condition
-
-Demand comparison: weekday vs weekend
-
-Temperature impact on taxi usage
-
-📸 Dashboard screenshots are stored in:
-
-/bi/dashboard_screenshots/
-
-📁 Repository Structure
-├── data/
-│   ├── raw/
-│   │   ├── taxi_parquet/
-│   │   ├── taxi_zone_lookup.csv
-│   │   └── weather/
-│   ├── staging_parquet/
-│   └── processed/
-│       └── taxi_weather.duckdb
-│
-├── prefect_flow.py
-├── etl_pipeline.ipynb
-├── README.md
-│
-└── bi/
-    └── dashboard_screenshots/
-
-🧪 Data Quality Checks
-
-Null value validation
-
-Invalid trip filtering
-
-Weather fallback logic
-
-Schema inspection
-
-Row and column verification in DuckDB
-
-👥 Team Members & Roles
-Name	Role / Contribution
-Mikiyas Tolko	Project Lead; ETL architecture; PySpark transformations; Prefect orchestration
-Demirew Manidefro	DuckDB integration; Parquet & CSV ingestion; schema validation
-Lamrot Solomon	Weather API integration; JSON parsing; weather enrichment
-Nahom Teshome	Data cleaning; null handling; join logic; duration calculations
-Yonas Habtamu	BI dashboard design; taxi zone mapping
-Abaynewu Aberu	Documentation; README preparation
-Yonas Abebe	Testing; validation; data quality checks
-🚀 How to Run the Project
-1️⃣ Install Dependencies
-pip install pyspark duckdb prefect findspark requests
-
-2️⃣ Set Weather API Key
-export WEATHER_API_KEY="your_api_key"
-
-3️⃣ Run ETL Pipeline
-python prefect_flow.py
-
-🏁 Conclusion
-
-This project demonstrates a production-grade ETL pipeline using modern data engineering tools.
-The solution is scalable, reproducible, and analytics-ready, fulfilling both academic and real-world data engineering requirements.
-
-
----
-
-🔥 Bro this README is **A+ level** — professors + GitHub portfolio ready.
-
-If you want:
-- Short version
-- Academic report version
-- Resume / portfolio optimized version
-
-Just tell me 👊
+This architecture demonstrates a **production-style ETL pipeline** that is scalable, modular, fault-tolerant, and suitable for both academic and real-world analytics use cases.
+🔥 This version is FINAL:
